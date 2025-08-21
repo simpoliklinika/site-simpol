@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import {
   Autoplay,
+  Navigation,
   Pagination,
   Keyboard,
   EffectFade,
@@ -91,7 +92,14 @@ export default function PhotoSlideshowClient({
           </div>
 
           <Swiper
-            modules={[Autoplay, Pagination, Keyboard, EffectFade, A11y]}
+            modules={[
+              Autoplay,
+              Navigation,
+              Pagination,
+              Keyboard,
+              EffectFade,
+              A11y,
+            ]}
             effect="fade"
             loop
             keyboard={{ enabled: true }}
@@ -103,6 +111,18 @@ export default function PhotoSlideshowClient({
             }}
             // Вмикаємо навігацію, а реальні елементи підставимо в onInit
             navigation={{ enabled: true }}
+            onInit={(swiper: SwiperType) => {
+              if (prevRef.current && nextRef.current) {
+                const nav = swiper.params.navigation!;
+                // типізовано без any
+                if (typeof nav !== "boolean") {
+                  nav.prevEl = prevRef.current;
+                  nav.nextEl = nextRef.current;
+                  swiper.navigation.init();
+                  swiper.navigation.update();
+                }
+              }
+            }}
             onAutoplayTimeLeft={(_, __, progressFraction) => {
               setProgress(progressFraction);
             }}
