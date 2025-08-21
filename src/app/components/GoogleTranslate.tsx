@@ -6,26 +6,30 @@ import Script from "next/script";
 
 export default function GoogleTranslate() {
   useEffect(() => {
-    // колбек, який викликає офіційний скрипт через ?cb=
+    // Колбек, який викликає офіційний скрипт через ?cb=
     window.googleTranslateElementInit = () => {
       const ctor = window.google?.translate?.TranslateElement;
       if (!ctor) return;
 
       const simple = ctor.InlineLayout?.SIMPLE;
-      // збираємо опції; layout підставляємо тільки якщо є (щоб не падало)
-      const opts: ConstructorParameters<typeof ctor>[0] = {
+
+      const opts: {
+        pageLanguage?: string;
+        includedLanguages?: string; // "uk,en,pl"
+        layout?: number; // InlineLayout.SIMPLE
+        autoDisplay?: boolean;
+      } = {
         pageLanguage: "uk",
         includedLanguages: "en",
-        ...(typeof simple === "number" ? { layout: simple } : {}),
       };
 
-      // контейнер можна давати як id або HTMLElement
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error - TS не розуміє що ctor — це newable interface, але воно працює
+      if (typeof simple === "number") {
+        opts.layout = simple;
+      }
+
       new ctor(opts, "google_translate_element");
     };
 
-    // cleanup (не обов’язково, але акуратно)
     return () => {
       try {
         delete window.googleTranslateElementInit;
