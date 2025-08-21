@@ -1,6 +1,8 @@
 // src/app/doctors/page.tsx
 import { notFound } from "next/navigation";
-import DoctorsGrid, { DoctorCard } from "./DoctorsGrid";
+import DoctorsGrid from "./DoctorsGrid";
+import type { DoctorCard } from "../../types/doctor"; // ⬅️ тип з окремого модуля
+
 import {
   fetchAllDoctorsFull,
   fetchDoctorsFilters,
