@@ -1,42 +1,48 @@
+// src/app/components/GoogleTranslate.tsx
 "use client";
 
 import { useEffect } from "react";
+import Script from "next/script";
 
-/**
- * Простий обгортковий компонент для Google Translate Embed.
- * Показує маленький дропдаун-селектор мов (укр ↔ англ).
- */
 export default function GoogleTranslate() {
   useEffect(() => {
-    // додатковий захист від повторного підключення
-    if (document.getElementById("gt-script")) return;
+    // колбек, який викликає офіційний скрипт через ?cb=
+    window.googleTranslateElementInit = () => {
+      const ctor = window.google?.translate?.TranslateElement;
+      if (!ctor) return;
 
-    // глобальний callback, який викликає сам скрипт Google
-    (window as any).googleTranslateElementInit = () => {
-      /* eslint-disable no-new, @typescript-eslint/ban-ts-comment */
-      // @ts-ignore – Google додає `google` у window динамічно
-      new window.google.translate.TranslateElement(
-        {
-          pageLanguage: "uk",
-          includedLanguages: "en",
-          layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
-        },
-        "google_translate_element"
-      );
-      /* eslint-enable */
+      const simple = ctor.InlineLayout?.SIMPLE;
+      // збираємо опції; layout підставляємо тільки якщо є (щоб не падало)
+      const opts: ConstructorParameters<typeof ctor>[0] = {
+        pageLanguage: "uk",
+        includedLanguages: "en",
+        ...(typeof simple === "number" ? { layout: simple } : {}),
+      };
+
+      // контейнер можна давати як id або HTMLElement
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error - TS не розуміє що ctor — це newable interface, але воно працює
+      new ctor(opts, "google_translate_element");
     };
 
-    // підключаємо скрипт Google Translate
-    const script = document.createElement("script");
-    script.id = "gt-script";
-    script.src =
-      "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-    script.async = true;
-    document.body.appendChild(script);
+    // cleanup (не обов’язково, але акуратно)
+    return () => {
+      try {
+        delete window.googleTranslateElementInit;
+      } catch {
+        /* ignore */
+      }
+    };
   }, []);
 
   return (
-    // контейнер, куди Google підставить дропдаун
-    <div id="google_translate_element" className="text-sm" />
+    <>
+      <div id="google_translate_element" />
+      <Script
+        id="google-translate"
+        src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+        strategy="afterInteractive"
+      />
+    </>
   );
 }
