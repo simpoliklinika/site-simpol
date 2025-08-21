@@ -1,4 +1,3 @@
-// src/app/components/PhotoSlideshowCoverflow.client.tsx
 "use client";
 
 import Image from "next/image";
@@ -15,8 +14,8 @@ import {
   FreeMode,
   A11y,
 } from "swiper/modules";
+import type { Swiper as SwiperType } from "swiper";
 
-// Styles
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -46,11 +45,12 @@ export default function PhotoSlideshowCoverflow({
   autoplayDelay?: number;
   showCaptions?: boolean;
 }) {
-  if (!photos?.length) return null;
-
+  // Хуки — зверху, без умов
   const prevRef = useRef<HTMLButtonElement | null>(null);
   const nextRef = useRef<HTMLButtonElement | null>(null);
-  const [thumbs, setThumbs] = useState<any>(null);
+  const [thumbs, setThumbs] = useState<SwiperType | null>(null);
+
+  if (!photos?.length) return null;
 
   return (
     <section className={`py-10 md:py-14 ${className}`}>
@@ -102,12 +102,17 @@ export default function PhotoSlideshowCoverflow({
               disableOnInteraction: false,
               pauseOnMouseEnter: true,
             }}
-            navigation={{ prevEl: prevRef.current, nextEl: nextRef.current }}
-            onBeforeInit={(swiper) => {
-              // @ts-ignore
-              swiper.params.navigation.prevEl = prevRef.current;
-              // @ts-ignore
-              swiper.params.navigation.nextEl = nextRef.current;
+            navigation={{ enabled: true }}
+            onInit={(swiper: SwiperType) => {
+              if (prevRef.current && nextRef.current) {
+                const nav = swiper.params.navigation!;
+                if (typeof nav !== "boolean") {
+                  nav.prevEl = prevRef.current;
+                  nav.nextEl = nextRef.current;
+                  swiper.navigation.init();
+                  swiper.navigation.update();
+                }
+              }
             }}
             thumbs={{ swiper: thumbs && !thumbs.destroyed ? thumbs : null }}
             breakpoints={{
@@ -129,7 +134,6 @@ export default function PhotoSlideshowCoverflow({
                     className="object-cover"
                     priority={idx === 0}
                   />
-                  {/* мʼякий градієнт зверху/знизу */}
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
                   {showCaptions && (
@@ -165,7 +169,7 @@ export default function PhotoSlideshowCoverflow({
           <div className="px-4 pb-5 pt-3 bg-black/40">
             <Swiper
               modules={[FreeMode, Thumbs, A11y]}
-              onSwiper={setThumbs}
+              onSwiper={(s: SwiperType) => setThumbs(s)}
               watchSlidesProgress
               freeMode
               slidesPerView={4}

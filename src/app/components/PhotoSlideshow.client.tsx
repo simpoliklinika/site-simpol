@@ -1,4 +1,3 @@
-// src/app/components/PhotoSlideshow.client.tsx
 "use client";
 
 import Image from "next/image";
@@ -13,8 +12,8 @@ import {
   EffectFade,
   A11y,
 } from "swiper/modules";
+import type { Swiper as SwiperType } from "swiper";
 
-// Swiper styles (safe to import inside a client component)
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -25,11 +24,11 @@ import { AnimatePresence, motion } from "framer-motion";
 
 export type PhotoItem = {
   id?: string | number;
-  src: string; // e.g. "/hospital/lobby.jpg" from /public/hospital
+  src: string;
   alt?: string;
   title?: string;
   description?: string;
-  href?: string; // optional link to a details page
+  href?: string;
 };
 
 export default function PhotoSlideshowClient({
@@ -41,14 +40,13 @@ export default function PhotoSlideshowClient({
   className?: string;
   autoplayDelay?: number;
 }) {
-  if (!photos?.length) return null;
-
+  // ⚠️ Хуки завжди викликаємо безумовно (до будь-яких return)
   const prevRef = useRef<HTMLButtonElement | null>(null);
   const nextRef = useRef<HTMLButtonElement | null>(null);
   const [activeModalIndex, setActiveModalIndex] = useState<number | null>(null);
-
-  // Autoplay progress (nice little radial timer in the corner)
   const [progress, setProgress] = useState(0); // 0..1
+
+  if (!photos?.length) return null;
 
   return (
     <section className={`py-10 md:py-14 ${className}`}>
@@ -111,19 +109,22 @@ export default function PhotoSlideshowClient({
               disableOnInteraction: false,
               pauseOnMouseEnter: true,
             }}
-            onAutoplayTimeLeft={(_, time, progressFraction) => {
-              // progressFraction: 0..1 (1 = time almost finished)
+            // Вмикаємо навігацію, а реальні елементи підставимо в onInit
+            navigation={{ enabled: true }}
+            onInit={(swiper: SwiperType) => {
+              if (prevRef.current && nextRef.current) {
+                const nav = swiper.params.navigation!;
+                // типізовано без any
+                if (typeof nav !== "boolean") {
+                  nav.prevEl = prevRef.current;
+                  nav.nextEl = nextRef.current;
+                  swiper.navigation.init();
+                  swiper.navigation.update();
+                }
+              }
+            }}
+            onAutoplayTimeLeft={(_, __, progressFraction) => {
               setProgress(progressFraction);
-            }}
-            navigation={{
-              prevEl: prevRef.current,
-              nextEl: nextRef.current,
-            }}
-            onBeforeInit={(swiper) => {
-              // @ts-ignore – Swiper's types don't like dynamic refs
-              swiper.params.navigation.prevEl = prevRef.current;
-              // @ts-ignore
-              swiper.params.navigation.nextEl = nextRef.current;
             }}
             className="select-none"
           >
@@ -135,7 +136,7 @@ export default function PhotoSlideshowClient({
                     src={p.src}
                     alt={p.alt || p.title || "Фото лікарні"}
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+                    sizes="100vw"
                     className="object-cover"
                     priority={idx === 0}
                   />
@@ -157,7 +158,6 @@ export default function PhotoSlideshowClient({
                         )}
                       </div>
 
-                      {/* Action: open modal / go to link */}
                       <div className="pointer-events-auto">
                         {p.href ? (
                           <Link
@@ -213,6 +213,7 @@ export default function PhotoSlideshowClient({
                 >
                   <X className="w-6 h-6" /> Закрити
                 </button>
+
                 <div className="relative w-full h-[70vh] rounded-xl overflow-hidden shadow-2xl bg-black">
                   <Image
                     src={photos[activeModalIndex].src}
@@ -261,10 +262,3 @@ export default function PhotoSlideshowClient({
     </section>
   );
 }
-
-// ------------------------------------------------------------
-// src/utils/getHospitalPhotos.ts (server util to read images from /public/hospital)
-// ------------------------------------------------------------
-
-// Place this in src/utils/getHospitalPhotos.ts
-// Usage: const photos = await getHospitalPhotos();
