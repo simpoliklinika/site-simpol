@@ -107,11 +107,11 @@ export default function DoctorsGrid({ doctors }: { doctors: DoctorCard[] }) {
             >
               <div className="relative w-full aspect-square">
                 <Image
-                  src={d.photoUrl}
-                  alt={d.name}
+                  src={d.photoUrl ?? "/images/doctor-placeholder.jpg"}
+                  alt={d.name ?? d.fullName ?? "Лікар"}
                   fill
+                  sizes="(max-width: 768px) 50vw, 25vw"
                   className="object-cover"
-                  unoptimized
                 />
               </div>
               <div className="p-4 flex-1 flex flex-col justify-between">
