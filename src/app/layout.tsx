@@ -9,17 +9,28 @@ import { AccessibilityProvider } from "./components/AccessibilityContext";
 import AccessibilityWidget from "./components/AccessibilityWidget";
 import type { Metadata, Viewport } from "next";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? // напр. "https://clinic.example.com"
-  `https://${process.env.NEXT_PUBLIC_HOSTNAME ?? "178.128.199.216.sslip.io"}`;
+/** Робимо URL абсолютним, навіть якщо в env без протоколу */
+function ensureAbsolute(u?: string) {
+  if (!u) return "https://localhost";
+  return u.startsWith("http://") || u.startsWith("https://")
+    ? u
+    : `https://${u}`;
+}
+
+const RAW_SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  `${
+    process.env.NEXT_PUBLIC_HOSTNAME
+      ? `https://${process.env.NEXT_PUBLIC_HOSTNAME}`
+      : "https://178.128.199.216.sslip.io"
+  }`;
 
 export const viewport: Viewport = {
-  // один колір
   themeColor: "#5ca59f",
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: new URL(ensureAbsolute(RAW_SITE_URL)),
   title: {
     default: `КНП "Сімейна поліклініка" — Чернігів`,
     template: `%s — КНП "Сімейна поліклініка"`,
@@ -38,24 +49,25 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image" },
   alternates: {
-    types: { "application/rss+xml": "/news/rss.xml" }, // якщо маєш RSS
+    types: { "application/rss+xml": "/news/rss.xml" },
   },
   icons: {
+    // файли мають існувати у /public
     icon: [
-      { url: "/icon-192.png" }, // іконка у вкладці
-      // (опц.) { url: "/icon.svg", type: "image/svg+xml" },
-      // (опц.) { url: "/icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" }, // фавікон для вкладки/маніфест
     ],
-    apple: "/icon-192.png", // для iOS
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
-
   manifest: "/site.webmanifest",
 };
 
 const ubuntu = Ubuntu({
   subsets: ["latin", "cyrillic-ext"],
   weight: ["300", "400", "500", "700"],
-  variable: "--font-poppins", // як було раніше
+  variable: "--font-poppins",
   display: "swap",
 });
 
@@ -67,13 +79,10 @@ export default function RootLayout({
   return (
     <html lang="uk" className={ubuntu.variable}>
       <body className="flex flex-col min-h-screen font-sans bg-gray-50 text-gray-800">
-        {/* Провайдер доступності обгортає увесь контент */}
         <AccessibilityProvider>
           <ClientHeader />
           <main className="flex-1">{children}</main>
           <Footer />
-
-          {/* Плаваюча кнопка + панель */}
           <AccessibilityWidget />
         </AccessibilityProvider>
       </body>
