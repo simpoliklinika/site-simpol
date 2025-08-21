@@ -31,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const ogImage = (best?.url && toAbs(best.url)) || "/og/home.jpg"; // зроби статичний файл, якщо треба
 
   return {
-    title: `КНП "Сімейна поліклініка`,
+    title: `КНП "Сімейна поліклініка"`,
     description:
       "Послуги, лікарі, графік прийому, новини та оголошення поліклініки Чернігова.",
     alternates: { canonical: "/" },
