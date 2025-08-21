@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import type { DoctorCard } from "./page"; // переконайся, що в цьому типі є поле `acceptsDeclarations: string`
+import type { DoctorCard } from "../../types/doctor";
 
 export default function DoctorsGrid({ doctors }: { doctors: DoctorCard[] }) {
   const [search, setSearch] = useState("");
