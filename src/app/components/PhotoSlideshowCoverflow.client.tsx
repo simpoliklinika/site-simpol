@@ -75,7 +75,6 @@ export default function PhotoSlideshowCoverflow({
           <Swiper
             modules={[
               Autoplay,
-              Navigation,
               Pagination,
               Keyboard,
               EffectCoverflow,
@@ -102,17 +101,6 @@ export default function PhotoSlideshowCoverflow({
               pauseOnMouseEnter: true,
             }}
             navigation={{ enabled: true }}
-            onInit={(swiper: SwiperType) => {
-              if (prevRef.current && nextRef.current) {
-                const nav = swiper.params.navigation!;
-                if (typeof nav !== "boolean") {
-                  nav.prevEl = prevRef.current;
-                  nav.nextEl = nextRef.current;
-                  swiper.navigation.init();
-                  swiper.navigation.update();
-                }
-              }
-            }}
             thumbs={{ swiper: thumbs && !thumbs.destroyed ? thumbs : null }}
             breakpoints={{
               640: { slidesPerView: 1.2, spaceBetween: 24 },
