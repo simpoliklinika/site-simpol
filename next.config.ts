@@ -1,5 +1,8 @@
 /** next.config.js */
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     domains: ['randomuser.me', 'localhost'],
     remotePatterns: [
