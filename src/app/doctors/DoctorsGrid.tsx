@@ -21,10 +21,19 @@ export default function DoctorsGrid({ doctors }: { doctors: DoctorCard[] }) {
   });
 
   // фільтруємо (працюємо з відсортованим списком)
+  const normalizedSearch = search.trim().toLowerCase();
+
   const filtered = sortedDoctors.filter((d) => {
-    const nameOk = d.name.toLowerCase().includes(search.toLowerCase());
-    const depOk = !department || d.department === department;
-    const specOk = !specialty || d.position === specialty;
+    const name = (d.name ?? d.fullName ?? "").toLowerCase();
+    const nameOk = !normalizedSearch || name.includes(normalizedSearch);
+
+    const depOk =
+      !department ||
+      (d.department ?? "").toLowerCase() === department.toLowerCase();
+
+    const specSource = (d.position ?? d.specialty ?? "").toLowerCase();
+    const specOk = !specialty || specSource === specialty.toLowerCase();
+
     return nameOk && depOk && specOk;
   });
 
