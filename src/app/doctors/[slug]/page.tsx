@@ -4,11 +4,11 @@ import type { Metadata } from "next";
 import DoctorProfileClient from "./DoctorProfileClient";
 import { fetchDoctorBySlugFull, type DoctorFull } from "@/utils/strapi-doctors";
 
-type PageProps = { params: { slug: string } };
+type PageProps = { params: Promise<{ slug: string }> };
 
-// Нормалізація значення до boolean (або undefined)
+// перетворюємо різні представлення значення в boolean | undefined
 function normalizeAccepts(val: unknown): boolean | undefined {
-  if (val === null || val === undefined) return undefined;
+  if (val == null) return undefined;
   if (typeof val === "boolean") return val;
   if (typeof val === "string") {
     const s = val.trim().toLowerCase();
@@ -22,7 +22,8 @@ function normalizeAccepts(val: unknown): boolean | undefined {
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const doctor = await fetchDoctorBySlugFull(params.slug);
+  const { slug } = await params;
+  const doctor = await fetchDoctorBySlugFull(slug);
   if (!doctor) return { title: "Лікар не знайдений" };
 
   return {
@@ -33,7 +34,8 @@ export async function generateMetadata({
 
 /* Сторінка */
 export default async function DoctorPage({ params }: PageProps) {
-  const doctor: DoctorFull | null = await fetchDoctorBySlugFull(params.slug);
+  const { slug } = await params;
+  const doctor: DoctorFull | null = await fetchDoctorBySlugFull(slug);
   if (!doctor) return notFound();
 
   return (
