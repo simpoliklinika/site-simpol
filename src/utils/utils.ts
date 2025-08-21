@@ -1,3 +1,7 @@
+
+//src/utils/utils.ts
+import { getStrapiBaseUrl } from "./strapiBase";
+
 export type StrapiResponse<T> = {
   data: Array<T>;
   meta: {
@@ -8,6 +12,7 @@ export type StrapiResponse<T> = {
       total: number;
     };
   };
+
 };
 
 export type StrapiSingleResponse<T> = {
@@ -35,8 +40,7 @@ export async function fetchFromStrapi<T>(
   options: StrapiFetchOptions = {},
 ): Promise<T | null> {
   try {
-    const strapiUrl =
-      process.env.STRAPI_URL || process.env.NEXT_PUBLIC_STRAPI_URL;
+    const strapiUrl = getStrapiBaseUrl();
 
     if (!strapiUrl) {
       console.error("STRAPI_URL environment variable is not set");
@@ -106,10 +110,10 @@ export async function fetchFromStrapi<T>(
     }
 
     const json = await res.json();
-    console.log(
-      `Strapi response for ${endpoint}:`,
-      JSON.stringify(json, null, 2),
-    );
+    // console.log(
+    //   `Strapi response for ${endpoint}:`,
+    //   JSON.stringify(json, null, 2),
+    // );
 
     return json as T;
   } catch (error) {

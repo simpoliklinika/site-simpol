@@ -1,6 +1,4 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
+# deps
 /node_modules
 /.pnp
 .pnp.*
@@ -22,16 +20,24 @@
 
 # misc
 .DS_Store
+Thumbs.db                 # ➕ windows сміття
 *.pem
 
-# debug
+# editor/IDE
+.idea/                    # ➕ JetBrains
+.vscode/*                 # ➕ локальні налаштування
+!.vscode/extensions.json  #   але ці файли можна трекати (опціонально)
+!.vscode/settings.json
+
+# debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env (не комітимо секрети)
 .env*
+!.env.example             # ➕ лишаємо приклад у репо
 
 # vercel
 .vercel
@@ -39,3 +45,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# turbopack/turborep
+.turbo/                   # ➕

@@ -1,23 +1,36 @@
-// next.config.ts
-import type { NextConfig } from 'next'
-
-const nextConfig: NextConfig = {
-  /** інші налаштування (якщо будуть) */
+/** next.config.js */
+const nextConfig = {
   images: {
-    /** ✅ сучасний спосіб — remotePatterns (Next 14+) */
+    domains: ['randomuser.me', 'localhost'],
     remotePatterns: [
+      // всі файли з Strapi за HTTP
       {
         protocol: 'http',
-        hostname: 'localhost',   // Strapi на локалці
-        port: '1337',            // порт Strapi
-        pathname: '/uploads/**', // усі файли з /uploads
+        hostname: 'localhost',
+        port: '1337',
+        pathname: '/**',      // <- дозволяємо всі шляхи, не тільки /uploads/**
+      },
+      {
+           protocol: 'https',
+            hostname: '178.128.199.216.sslip.io',
+           port: '',
+            pathname: '/**',
+           },
+      {
+        protocol: 'http',
+        hostname: '192.168.31.48',
+        port: '1337',
+        pathname: '/**',
+      },
+      // із randomuser залишаємо як було
+      {
+        protocol: 'https',
+        hostname: 'randomuser.me',
+        port: '',              
+        pathname: '/api/portraits/**',
       },
     ],
-
-    /* 👉 якщо лишаєтесь на старому API, можна замість remotePatterns:
-    domains: ['localhost'],
-    */
   },
-}
+};
 
-export default nextConfig
+module.exports = nextConfig;

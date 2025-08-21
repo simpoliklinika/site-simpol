@@ -1,17 +1,35 @@
-/* src/app/globals.css */
 @import "swiper/css";
 @import "swiper/css/navigation";
 @import "swiper/css/pagination";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-
 :root {
   --font-sans: var(--font-poppins);
+  /* Accessibility vars */
+  --app-zoom: 1;
+  --app-letter-spacing: 0;
+  --app-invert: 0;
+  --app-contrast: 1;
 }
 
 body {
   background: rgb(103, 179, 153);
   font-family: var(--font-sans), sans-serif;
+  letter-spacing: calc(var(--app-letter-spacing) * 1px);
+  filter: invert(var(--app-invert)) contrast(var(--app-contrast));
+}
+
+/* Масштаб (Cmd +/ Ctrl +) */
+html {
+  zoom: var(--app-zoom);
+}
+/* Firefox fallback */
+@supports not (zoom: 2) {
+  html {
+    transform: scale(var(--app-zoom));
+    transform-origin: top left;
+  }
 }

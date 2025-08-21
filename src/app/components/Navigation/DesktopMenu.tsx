@@ -1,45 +1,70 @@
+// Navigation/DesktopMenu.tsx
 "use client";
 
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { menuItems } from "./MainMenuItems";
-import { useState } from "react";
 
 export default function DesktopMenu() {
-  const [openMenuIndex, setOpenMenuIndex] = useState<number | null>(null);
-  const [closeTimeout, setCloseTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [open, setOpen] = useState<number | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleMouseEnter = (index: number) => {
-    if (closeTimeout) {
-      clearTimeout(closeTimeout);
+  const handleEnter = (i: number) => {
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
-    setOpenMenuIndex(index);
+    setOpen(i);
   };
 
-  const handleMouseLeave = () => {
-    const timeout = setTimeout(() => {
-      setOpenMenuIndex(null);
-    }, 200); // затримка 200 мс перед закриттям
-    setCloseTimeout(timeout);
+  const handleLeave = () => {
+    // Add a small delay before closing to allow moving to dropdown
+    timeoutRef.current = setTimeout(() => {
+      setOpen(null);
+    }, 150);
+  };
+
+  const handleDropdownEnter = () => {
+    // Cancel the close timeout when entering dropdown
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+  };
+
+  const handleDropdownLeave = () => {
+    // Close dropdown when leaving the dropdown area
+    setOpen(null);
   };
 
   return (
-    <nav className="hidden md:flex items-center gap-6 text-sm text-gray-800 font-medium font-sans">
+    <div
+      className="
+        hidden md:flex
+        items-center
+        gap-8                     /* великі відступи */
+        text-base font-medium     /* трішки більший шрифт */
+        text-gray-800 font-sans
+      "
+    >
       <Link href="/" className="hover:text-primary">
         Головна
       </Link>
 
-      {menuItems.map((section, index) => (
+      {menuItems.map((section, i) => (
         <div
           key={section.title}
           className="relative"
-          onMouseEnter={() => handleMouseEnter(index)}
-          onMouseLeave={handleMouseLeave}
+          onMouseEnter={() => handleEnter(i)}
+          onMouseLeave={handleLeave}
         >
           <button className="hover:text-primary">{section.title}</button>
 
-          {/* Випадаюче меню */}
-          {openMenuIndex === index && (
-            <div className="absolute top-full left-0 mt-2 flex flex-col bg-white shadow-lg rounded-md py-2 min-w-[220px] z-50">
+          {open === i && (
+            <div
+              className="absolute top-full left-0 mt-2 flex flex-col bg-white shadow-lg rounded-md py-2 min-w-[220px] z-50"
+              onMouseEnter={handleDropdownEnter}
+              onMouseLeave={handleDropdownLeave}
+            >
               {section.items.map((item) => (
                 <Link
                   key={item.href}
@@ -63,6 +88,6 @@ export default function DesktopMenu() {
       <Link href="/contact" className="hover:text-primary">
         Контакти
       </Link>
-    </nav>
+    </div>
   );
 }

@@ -6,12 +6,10 @@ export const menuItems = [
     items: [
       { label: "Історія закладу", href: "/about" },
       { label: "Новини", href: "/news" },
-      { label: "Повідомлення", href: "/announcements" },
       { label: "Основні напрямки", href: "/activities" },
       { label: "Пакети послуг", href: "/packages" },
-      { label: "Медичні гарантії", href: "/medical-programs" },
+      { label: "Програма медичних гарантій", href: "/medical-programs" },
       { label: "Фотогалерея", href: "/gallery" },
-      { label: "Вакансії", href: "/vacancies" },
     ],
   },
   {
@@ -24,31 +22,40 @@ export const menuItems = [
   },
   {
     title: "Публічна інформація",
+
     items: [
-      { label: "Платні послуги", href: "/public/paid" },
-      { label: "Ліцензія", href: "/public/licenses" },
+      {
+        label: "Платні послуги",
+        href: "/public-info/platni-poslugi",
+      },
+      { label: "Ліцензія", href: "/public-info/licensy" },
       {
         label: "Залишки лікарських засобів придбаних за кошти бюджету",
-        href: "/public/drugs",
+        href: "https://eliky.in.ua/hospital/2567",
       },
-      { label: "Державні закупівлі", href: "/public/procurement" },
+      {
+        label: "Державні закупівлі",
+        href: "https://prozorro.gov.ua/uk/search/tender?buyer=04591208&sort=publication_date,desc",
+      },
+      {
+        label: "Правила трудового розпорядку",
+        href: "/public-info/trudovyi-rozporyadok",
+      },
     ],
   },
   {
     title: "Пацієнту",
     items: [
-      { label: "Особистий кабінет", href: "/patients/profile" },
-      { label: "Права пацієнтів", href: "/patients/rights" },
-      { label: "Вакцинація", href: "/patients/vaccination" },
-      { label: "COVID-19", href: "/patients/covid" },
+      { label: "Особистий кабінет", href: "https://h24.ua/login" },
+      { label: "Права та обовʼязки пацієнтів", href: "/patients/prava" },
+      { label: "Вакцинація", href: "/patients/vaccine" },
       { label: "Реімбурсація", href: "/patients/reimbursement" },
-      { label: "Телемедицина", href: "/patients/telemedicine" },
       { label: "Безбар’єрність", href: "/patients/safety" },
-      { label: "Інфо для ВПО", href: "/patients/idp" },
-      { label: "ЦДІКК", href: "/patients/cpms" },
-      { label: "Посилання", href: "/patients/links" },
-      { label: "Графік прийому", href: "/patients/schedule" },
-      { label: "Форма зворотного зв’язку", href: "/patients/contact-form" },
+      {
+        label: "Інфо для ВПО",
+        href: "https://bf.diia.gov.ua/articles/medychni-posluhy-dlia-vnutrishno-peremishchenykh-osib",
+      },
+      { label: "ЦЛКК", href: "/patients/cpms" },
     ],
   },
 ];

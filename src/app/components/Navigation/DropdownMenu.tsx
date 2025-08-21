@@ -31,12 +31,14 @@ export default function DropdownMenu() {
         {[
           { label: "Історія закладу", href: "/about" },
           { label: "Новини", href: "/news" },
-          { label: "Повідомлення", href: "/announcements" },
-          { label: "Основні напрямки діяльності", href: "/activities" },
-          { label: "Пакети медичних послуг", href: "/packages" },
+          { label: "Основні напрямки", href: "/activities" },
+          { label: "Пакети послуг", href: "/packages" },
           { label: "Програма медичних гарантій", href: "/medical-programs" },
           { label: "Фотогалерея", href: "/gallery" },
-          { label: "Вакансії", href: "/vacancies" },
+          {
+            label: "Вакансії",
+            href: "https://health.mvs.gov.ua/uk/poliklinika/pro_nas/vacancies",
+          },
         ].map(({ label, href }) => (
           <Link
             key={href}
