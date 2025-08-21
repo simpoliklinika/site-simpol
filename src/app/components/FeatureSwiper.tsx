@@ -1,16 +1,15 @@
 // src/app/components/FeatureSwiper.tsx
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import { Pagination, Autoplay } from "swiper/modules"; // ⬅️ без Navigation
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Swiper as SwiperType } from "swiper";
 
-// стилі Swiper імпортуються на верхньому рівні
 import "swiper/css";
-import "swiper/css/navigation";
+// import "swiper/css/navigation"; // ⬅️ прибрано
 import "swiper/css/pagination";
 
 const slides = [
@@ -52,94 +51,17 @@ const slides = [
 ];
 
 export default function FeatureSwiper() {
-  const prevRef = useRef<HTMLButtonElement | null>(null);
-  const nextRef = useRef<HTMLButtonElement | null>(null);
-  const paginationRef = useRef<HTMLDivElement | null>(null);
   const swiperRef = useRef<SwiperType | null>(null);
-
-  // Викликається до внутрішньої ініціалізації Swiper
-  const handleBeforeInit = (sw: SwiperType) => {
-    // зберігаємо інстанс
-    swiperRef.current = sw;
-
-    // гарантуємо об'єкт navigation
-    sw.params.navigation = sw.params.navigation || {};
-    // якщо refs вже присвоєні — призначаємо, інакше залишимо undefined, але useEffect допризначить пізніше
-    sw.params.navigation.prevEl =
-      prevRef.current ?? sw.params.navigation.prevEl;
-    sw.params.navigation.nextEl =
-      nextRef.current ?? sw.params.navigation.nextEl;
-
-    // якщо кастомна пагінація - прив'язка селектора
-    if (paginationRef.current) {
-      sw.params.pagination = sw.params.pagination || {};
-      // @ts-ignore — типізація Swiper для кастомного el іноді строга
-      sw.params.pagination.el = paginationRef.current;
-    }
-  };
-
-  // Після того як DOM змонтований — гарантуємо ініціалізацію навігації (коли refs стали не-null)
-  useEffect(() => {
-    const sw = swiperRef.current;
-    if (!sw) return;
-
-    // перепризначимо посилання на елементи, якщо refs тепер доступні
-    if (sw.params.navigation) {
-      sw.params.navigation.prevEl =
-        prevRef.current ?? sw.params.navigation.prevEl;
-      sw.params.navigation.nextEl =
-        nextRef.current ?? sw.params.navigation.nextEl;
-    } else {
-      sw.params.navigation = {
-        prevEl: prevRef.current,
-        nextEl: nextRef.current,
-      } as any;
-    }
-
-    // Ініціалізуємо/оновлюємо navigation, якщо методи доступні
-    if (sw.navigation) {
-      if (typeof sw.navigation.init === "function") {
-        try {
-          sw.navigation.init();
-        } catch (e) {
-          // ignore init errors
-        }
-      }
-      if (typeof sw.navigation.update === "function") {
-        try {
-          sw.navigation.update();
-        } catch (e) {
-          // ignore update errors
-        }
-      }
-    }
-
-    // cleanup: при демонтажі зруйнувати navigation
-    return () => {
-      const s = swiperRef.current;
-      if (s && s.navigation && typeof s.navigation.destroy === "function") {
-        try {
-          s.navigation.destroy();
-        } catch (e) {
-          // ignore
-        }
-      }
-    };
-  }, []);
 
   return (
     <section className="relative overflow-hidden bg-gray-50 py-16">
       <div className="container mx-auto px-4 relative">
-        {/* Кастомна пагінація — має бути в DOM до Swiper */}
-        <div
-          ref={paginationRef}
-          className="feature-swiper-pagination absolute bottom-6 left-6 text-lg font-semibold select-none z-40"
-        />
+        {/* кастомна пагінація */}
+        <div className="feature-swiper-pagination absolute bottom-6 left-6 text-lg font-semibold select-none z-40" />
 
-        {/* кнопки навігації — теж мають бути в DOM ДО Swiper */}
+        {/* наші власні кнопки (білі кружечки) */}
         <div className="absolute bottom-6 right-6 flex items-center space-x-3 z-50">
           <button
-            ref={prevRef}
             type="button"
             aria-label="Попередній слайд"
             className="p-4 bg-white border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 shadow-lg transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#319c9c]"
@@ -149,7 +71,6 @@ export default function FeatureSwiper() {
           </button>
 
           <button
-            ref={nextRef}
             type="button"
             aria-label="Наступний слайд"
             className="p-4 bg-white border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 shadow-lg transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#319c9c]"
@@ -160,13 +81,10 @@ export default function FeatureSwiper() {
         </div>
 
         <Swiper
-          modules={[Navigation, Pagination, Autoplay]}
-          onBeforeInit={handleBeforeInit}
-          slidesPerView={1}
-          loop
-          autoplay={{ delay: 7000, disableOnInteraction: false }}
+          modules={[Pagination, Autoplay]} // ⬅️ Navigation прибрано
+          onSwiper={(s) => (swiperRef.current = s)}
           pagination={{
-            // використаємо el, який ми прив'язали у onBeforeInit (paginationRef)
+            el: ".feature-swiper-pagination",
             type: "custom",
             renderCustom: (_s, cur, tot) => {
               const c = String(cur).padStart(2, "0");
@@ -174,6 +92,9 @@ export default function FeatureSwiper() {
               return `<span class="text-gray-800 font-semibold">${c}</span> — <span class="text-gray-400 font-semibold">${t}</span>`;
             },
           }}
+          slidesPerView={1}
+          loop
+          autoplay={{ delay: 7000, disableOnInteraction: false }}
           className="overflow-visible"
         >
           {slides.map((s, i) => (
@@ -193,7 +114,7 @@ export default function FeatureSwiper() {
                       alt={s.title}
                       fill
                       priority
-                      style={{ objectFit: "cover" }}
+                      className="object-cover"
                     />
                   </div>
                 </div>
