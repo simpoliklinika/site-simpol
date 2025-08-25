@@ -17,7 +17,7 @@ export default function Header() {
   const branches = {
     lukianenka: {
       phoneRaw: "+380462670673",
-      phonePretty: "+38 (0462) 67-06-73",
+      phonePretty: "+380(0462) 97-97-97;",
       address: "проспект Левка Лукʼяненка 47, Чернігів",
       maps: "https://maps.google.com/?q=проспект Левка Лукʼяненка 47, Чернігів",
       label: "Лукʼяненка",
@@ -66,15 +66,6 @@ export default function Header() {
                   label: `Пирогова — ${branches.pyrohova.phonePretty}`,
                   href: `tel:${branches.pyrohova.phoneRaw}`,
                 },
-                {
-                  label: `Маршрут до ${branches.lukianenka.address}`,
-                  href: branches.lukianenka.maps,
-                },
-                {
-                  label: `Маршрут до ${branches.pyrohova.address}`,
-                  href: branches.pyrohova.maps,
-                },
-                { label: "Екстрений — 103", href: "tel:103" },
               ]}
             />
           </div>

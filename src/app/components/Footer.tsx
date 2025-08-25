@@ -9,6 +9,7 @@ import {
   MapPin,
   PhoneCall,
   ExternalLink,
+  Mail,
 } from "lucide-react";
 
 export default function Footer() {
@@ -94,6 +95,8 @@ export default function Footer() {
             <h3 className="text-2xl font-semibold tracking-tight mb-6">
               Швидкі дії
             </h3>
+
+            {/* --- Помістили email всередину гриду --- */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {branches.map((b) => (
                 <a
@@ -117,6 +120,29 @@ export default function Footer() {
                   </div>
                 </a>
               ))}
+
+              {/* Електронна пошта — всередині гриду, займає 2 колонки на sm+ */}
+              <a
+                href="mailto:chdpn1@gmail.com"
+                aria-label="Написати на електронну пошту"
+                className="group rounded-2xl bg-white/10 border border-white/20 p-4 hover:bg-white/15 transition shadow-sm sm:col-span-2 mt-4 sm:mt-6 w-full"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="rounded-xl bg-white/15 p-2 shrink-0">
+                    <Mail className="w-5 h-5" />
+                  </div>
+
+                  <div className="w-full">
+                    <div className="text-sm text-white/80">
+                      Електронна пошта
+                    </div>
+
+                    <div className="font-semibold tracking-wide text-base sm:text-lg mt-1 break-words whitespace-normal w-full">
+                      chdpn1@gmail.com
+                    </div>
+                  </div>
+                </div>
+              </a>
             </div>
           </div>
 
@@ -169,7 +195,7 @@ export default function Footer() {
 
       {/* тонка смужка © */}
       <div className="bg-[#277f7f] text-center text-sm md:text-base py-4 text-white">
-        © {new Date().getFullYear()} КНП&nbsp;«Сімейна&nbsp;Поліклініка»{" "}
+        © {new Date().getFullYear()} КНП&nbsp;«Сімейна&nbsp;поліклініка ЧМР»{" "}
         Developed by{" "}
         <a
           href="https://www.facebook.com/ilya.khurtak.9/"
