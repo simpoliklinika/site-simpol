@@ -195,7 +195,7 @@ export default function Footer() {
 
       {/* тонка смужка © */}
       <div className="bg-[#277f7f] text-center text-sm md:text-base py-4 text-white">
-        © {new Date().getFullYear()} КНП&nbsp;«Сімейна&nbsp;поліклініка ЧМР»{" "}
+        © {new Date().getFullYear()} КНП&nbsp;«Сімейна&nbsp;поліклініка» ЧМР{" "}
         Developed by{" "}
         <a
           href="https://www.facebook.com/ilya.khurtak.9/"
