@@ -17,7 +17,7 @@ export default function Header() {
   const branches = {
     lukianenka: {
       phoneRaw: "+380462670673",
-      phonePretty: "+380(0462) 97-97-97;",
+      phonePretty: "+38 (0462) 67-06-73",
       address: "проспект Левка Лукʼяненка 47, Чернігів",
       maps: "https://maps.google.com/?q=проспект Левка Лукʼяненка 47, Чернігів",
       label: "Лукʼяненка",

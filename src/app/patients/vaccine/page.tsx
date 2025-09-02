@@ -44,7 +44,7 @@ const Hero = () => (
 const Content = () => (
   <section className="flex-1 container mx-auto px-4 py-16 prose lg:prose-lg max-w-4xl text-justify">
     <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-      Станом на 01.07.2025 в КНП «Сімейна поліклініка» ЧМР наявні вакцини:
+      В КНП «Сімейна поліклініка» ЧМР наявні вакцини:
     </h2>
     <ul className="list-disc pl-6 space-y-2">
       <li>АКДП (проти кору, дифтерії, правця)</li>
