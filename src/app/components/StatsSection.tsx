@@ -70,33 +70,33 @@ export default function StatsSection() {
   useEffect(() => {
     async function loadStats() {
       try {
-        // Викликаємо базову функцію fetchFromStrapi напряму
-        const resp = await fetchFromStrapi<any>("stat", {
-          populate: "*",
-        });
+        const strapiUrl =
+          "https://languages-politics-beliefs-serum.trycloudflare.com"; // ТИМЧАСОВО ВПИШИ ПРЯМО СЮДИ
+        const url = `${strapiUrl}/api/stat?populate=*`;
 
-        console.log("Full Strapi Response:", resp);
+        console.log("🚀 Manual fetch start:", url);
 
-        // У Strapi v5 для Single Type дані лежать просто в resp.data
-        const data = resp?.data;
+        const res = await fetch(url, { cache: "no-store" });
+        const json = await res.json();
 
+        console.log("✅ Manual fetch success:", json);
+
+        const data = json?.data;
         if (!data) {
-          console.warn("Дані статистики порожні або відсутні");
           setStats([]);
           return;
         }
 
-        // Наповнюємо стейт, перевіряючи наявність полів
         setStats([
-          { label: "Відділень", value: Number(data.deps) || 0 },
-          { label: "Лікарів", value: Number(data.doctors) || 0 },
-          { label: "Хірургічних втручань", value: Number(data.vtruchan) || 0 },
-          { label: "Декларацій", value: Number(data.decl) || 0 },
-          { label: "Лабораторних досліджень", value: Number(data.dosl) || 0 },
-          { label: "Консультацій", value: Number(data.cons) || 0 },
+          { label: "Відділень", value: data.deps || 0 },
+          { label: "Лікарів", value: data.doctors || 0 },
+          { label: "Хірургічних втручань", value: data.vtruchan || 0 },
+          { label: "Декларацій", value: data.decl || 0 },
+          { label: "Лабораторних досліджень", value: data.dosl || 0 },
+          { label: "Консультацій", value: data.cons || 0 },
         ]);
       } catch (error) {
-        console.error("Помилка завантаження статистики:", error);
+        console.error("❌ Manual fetch error:", error);
         setStats([]);
       }
     }
