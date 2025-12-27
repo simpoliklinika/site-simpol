@@ -70,34 +70,33 @@ export default function StatsSection() {
   useEffect(() => {
     async function loadStats() {
       try {
-        // Отримуємо відповідь від Strapi
+        // Викликаємо базову функцію fetchFromStrapi напряму
         const resp = await fetchFromStrapi<any>("stat", {
           populate: "*",
         });
 
-        console.log("👍 Strapi stat data response:", resp);
+        console.log("Full Strapi Response:", resp);
 
-        // У Strapi v5 для Single Types дані лежать безпосередньо в data
+        // У Strapi v5 для Single Type дані лежать просто в resp.data
         const data = resp?.data;
 
         if (!data) {
-          console.warn("Статистика не знайдена");
+          console.warn("Дані статистики порожні або відсутні");
           setStats([]);
           return;
         }
 
-        // Оскільки структура JSON має вигляд {"data": {"deps": 9, ...}},
-        // ми звертаємося до полів безпосередньо через data
+        // Наповнюємо стейт, перевіряючи наявність полів
         setStats([
-          { label: "Відділень", value: data.deps || 0 },
-          { label: "Лікарів", value: data.doctors || 0 },
-          { label: "Хірургічних втручань", value: data.vtruchan || 0 },
-          { label: "Декларацій", value: data.decl || 0 },
-          { label: "Лабораторних досліджень", value: data.dosl || 0 },
-          { label: "Консультацій", value: data.cons || 0 },
+          { label: "Відділень", value: Number(data.deps) || 0 },
+          { label: "Лікарів", value: Number(data.doctors) || 0 },
+          { label: "Хірургічних втручань", value: Number(data.vtruchan) || 0 },
+          { label: "Декларацій", value: Number(data.decl) || 0 },
+          { label: "Лабораторних досліджень", value: Number(data.dosl) || 0 },
+          { label: "Консультацій", value: Number(data.cons) || 0 },
         ]);
       } catch (error) {
-        console.error("Помилка при завантаженні статистики:", error);
+        console.error("Помилка завантаження статистики:", error);
         setStats([]);
       }
     }
