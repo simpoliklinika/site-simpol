@@ -145,17 +145,19 @@ export async function getStrapiEntry<T>(
   contentType: string,
   options: StrapiFetchOptions = {},
 ): Promise<T | null> {
-  const response = await fetchFromStrapi<StrapiResponse<T>>(
+  const response = await fetchFromStrapi<any>(
     contentType,
     options,
   );
 
-  if (!response || !response.data || response.data.length === 0) {
-    console.warn(`No ${contentType} data found`);
+  if (!response || !response.data) {
+    console.warn(`No data found for ${contentType}`);
     return null;
   }
 
-  return response.data[0];
+  // ПЕРЕВІРКА: якщо це масив (v4 або Collection), беремо перший елемент. 
+  // Якщо об'єкт (v5 Single Type) — повертаємо його цілим.
+  return Array.isArray(response.data) ? response.data[0] : response.data;
 }
 
 // Utility function to get entry by ID
