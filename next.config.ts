@@ -32,6 +32,10 @@ const nextConfig = {
         port: '',              
         pathname: '/api/portraits/**',
       },
+      {
+        protocol: 'https',
+        hostname: '**.trycloudflare.com', // <--- ЦЕ ГОЛОВНЕ: Дозволяє будь-який тунель
+      },
     ],
   },
 };
