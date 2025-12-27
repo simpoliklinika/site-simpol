@@ -70,26 +70,31 @@ export default function StatsSection() {
   useEffect(() => {
     async function loadStats() {
       try {
-        // Для single-type "stat" у Strapi v5 (flattened data)
-        const resp = await fetchFromStrapi<{ data: StatData }>("stat", {
+        // Отримуємо відповідь від Strapi
+        const resp = await fetchFromStrapi<any>("stat", {
           populate: "*",
         });
 
+        console.log("👍 Strapi stat data response:", resp);
+
+        // У Strapi v5 для Single Types дані лежать безпосередньо в data
         const data = resp?.data;
-        console.log("👍 Strapi stat data:", data);
+
         if (!data) {
           console.warn("Статистика не знайдена");
           setStats([]);
           return;
         }
 
+        // Оскільки структура JSON має вигляд {"data": {"deps": 9, ...}},
+        // ми звертаємося до полів безпосередньо через data
         setStats([
-          { label: "Відділень", value: data.deps },
-          { label: "Лікарів", value: data.doctors },
-          { label: "Хірургічних втручань", value: data.vtruchan },
-          { label: "Декларацій", value: data.decl },
-          { label: "Лабораторних досліджень", value: data.dosl },
-          { label: "Консультацій", value: data.cons },
+          { label: "Відділень", value: data.deps || 0 },
+          { label: "Лікарів", value: data.doctors || 0 },
+          { label: "Хірургічних втручань", value: data.vtruchan || 0 },
+          { label: "Декларацій", value: data.decl || 0 },
+          { label: "Лабораторних досліджень", value: data.dosl || 0 },
+          { label: "Консультацій", value: data.cons || 0 },
         ]);
       } catch (error) {
         console.error("Помилка при завантаженні статистики:", error);
