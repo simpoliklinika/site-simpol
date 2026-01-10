@@ -2,11 +2,22 @@
 
 import { useEffect, useRef, useState } from "react";
 
+// Тип даних, які приходять з сервера
+export interface StatsData {
+  deps: number;
+  doctors: number;
+  vtruchan: number;
+  decl: number;
+  dosl: number;
+  cons: number;
+}
+
 interface StatItem {
   label: string;
   value: number;
 }
 
+// --- Хук для анімації цифр ---
 function useCountUp(target: number, duration = 2000, start = true) {
   const [count, setCount] = useState(0);
   const frame = useRef(0);
@@ -38,6 +49,7 @@ function useCountUp(target: number, duration = 2000, start = true) {
   return count;
 }
 
+// --- Картка однієї статистики ---
 function StatCard({ label, value, visible }: StatItem & { visible: boolean }) {
   const count = useCountUp(value, 2000, visible);
   return (
@@ -48,61 +60,30 @@ function StatCard({ label, value, visible }: StatItem & { visible: boolean }) {
   );
 }
 
-export default function StatsSection() {
-  const [stats, setStats] = useState<StatItem[] | null>(null);
+// --- Головний компонент ---
+// Тепер він приймає дані через пропси (initialData)
+export default function StatsSection({
+  initialData,
+}: {
+  initialData: StatsData | null;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
-    async function loadStats() {
-      try {
-        // Беремо URL
-        const baseUrl =
-          process.env.NEXT_PUBLIC_STRAPI_URL ||
-          "https://languages-politics-beliefs-serum.trycloudflare.com";
-        const url = `${baseUrl}/api/stat`; // Без populate=*, бо це вішає тунель
+  // Перетворюємо об'єкт даних у масив для рендеру
+  // Якщо даних немає (null), ставимо нулі або пустий масив
+  const stats: StatItem[] = initialData
+    ? [
+        { label: "Відділень", value: initialData.deps },
+        { label: "Лікарів", value: initialData.doctors },
+        { label: "Хірургічних втручань", value: initialData.vtruchan },
+        { label: "Декларацій", value: initialData.decl },
+        { label: "Лабораторних досліджень", value: initialData.dosl },
+        { label: "Консультацій", value: initialData.cons },
+      ]
+    : [];
 
-        console.log("🚀 Fetching stats:", url);
-
-        // Я прибрав signal (таймаут), тепер воно чекатиме скільки треба
-        const res = await fetch(url, {
-          cache: "no-store",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!res.ok) throw new Error(`Status: ${res.status}`);
-
-        const json = await res.json();
-        console.log("✅ Stats data received:", json);
-
-        // Обробка даних (враховуємо і плоску структуру, і вкладену)
-        const rawData = json?.data;
-        const data = rawData?.attributes || rawData;
-
-        if (!data) {
-          console.warn("No data found in response");
-          setStats([]);
-          return;
-        }
-
-        setStats([
-          { label: "Відділень", value: data.deps || 0 },
-          { label: "Лікарів", value: data.doctors || 0 },
-          { label: "Хірургічних втручань", value: data.vtruchan || 0 },
-          { label: "Декларацій", value: data.decl || 0 },
-          { label: "Лабораторних досліджень", value: data.dosl || 0 },
-          { label: "Консультацій", value: data.cons || 0 },
-        ]);
-      } catch (error) {
-        console.error("❌ Stats fetch error:", error);
-        setStats([]);
-      }
-    }
-    loadStats();
-  }, []);
-
+  // Intersection Observer для запуску анімації при скролі
   useEffect(() => {
     if (!ref.current) return;
     const observer = new IntersectionObserver(
@@ -118,26 +99,24 @@ export default function StatsSection() {
     return () => observer.disconnect();
   }, []);
 
+  // Якщо дані не прийшли з сервера, секцію можна приховати або показати заглушку
+  if (!initialData) {
+    return null;
+  }
+
   return (
     <div ref={ref} className="py-16 bg-[#319c9c] text-white">
-      {stats === null ? (
-        <p className="text-center">Завантаження статистики…</p>
-      ) : stats.length === 0 ? (
-        // Пустий блок замість помилки, щоб не псувати вигляд
-        <div className="h-10"></div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-y-8 gap-x-4">
-            {stats.map((stat, idx) => (
-              <StatCard key={idx} {...stat} visible={visible} />
-            ))}
-          </div>
-          <p className="mt-12 text-center text-lg max-w-3xl mx-auto">
-            Наша місія – якісна і доступна медицина, доказові практики, сучасний
-            менеджмент, безпечна праця медиків.
-          </p>
-        </>
-      )}
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-y-8 gap-x-4">
+          {stats.map((stat, idx) => (
+            <StatCard key={idx} {...stat} visible={visible} />
+          ))}
+        </div>
+        <p className="mt-12 text-center text-lg max-w-3xl mx-auto">
+          Наша місія – якісна і доступна медицина, доказові практики, сучасний
+          менеджмент, безпечна праця медиків.
+        </p>
+      </div>
     </div>
   );
 }

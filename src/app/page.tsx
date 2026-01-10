@@ -1,34 +1,31 @@
-// src/app/page.tsx -----------------------------------------------------------
 import Image from "next/image";
-import { notFound } from "next/navigation";
 import PromoSlider from "@/components/FeatureSwiper";
 import StatsSection from "./components/StatsSection";
-import DoctorSwiper from "@/components/DoctorSwiper";
+import DoctorSwiper from "@/components/DoctorSwiper"; // Якщо використовується
 import ServiceCards from "@/components/ServiceCards";
-import LatestNews from "@/components/LatestNews"; // ← нове
+import LatestNews from "@/components/LatestNews";
 import { toAbs } from "@/utils/toAbs";
-import { getStrapiEntry, getStrapiEntries } from "../utils/utils";
+import { getStrapiEntries } from "../utils/utils";
 import { fetchHomepage } from "@/utils/strapi-homepage";
-import NewsContent from "@/components/NewsContent"; // можемо перевикористати
-import PhotoSlideshowClient, {
-  PhotoItem,
-} from "./components/PhotoSlideshow.client";
+import NewsContent from "@/components/NewsContent";
+import { PhotoItem } from "./components/PhotoSlideshow.client"; // Прибрав PhotoSlideshowClient з імпорту, якщо не юзається прямо тут
 import { getHospitalPhotos } from "@/utils/getHospitalPhotos";
 import PhotoSlideshowCoverflow from "./components/PhotoSlideshowCoverflow.client";
 import MapsSection from "@/components/MapsSection";
 import type { Metadata } from "next";
 
+// 👇 Переконайся, що ця функція експортується з твого файлу utils
+// Якщо ти створив окремий файл strapi-stats.ts, зміни шлях на "@/utils/strapi-stats"
+import { fetchStatsData } from "@/utils/strapi-doctors";
+
 export const dynamic = "force-dynamic";
 
 /* ---------- TYPES ---------- */
 export async function generateMetadata(): Promise<Metadata> {
-  // тягнемо свіже головне фото
   const photoRec = await getMainPhoto();
   const photo = photoRec?.photo;
   const best = photo?.formats?.medium ?? photo;
-
-  // абсолютна URL для OG (через твій toAbs)
-  const ogImage = (best?.url && toAbs(best.url)) || "/og/home.jpg"; // зроби статичний файл, якщо треба
+  const ogImage = (best?.url && toAbs(best.url)) || "/og/home.jpg";
 
   return {
     title: `КНП "Сімейна поліклініка" Чернігівської міської ради`,
@@ -73,48 +70,45 @@ type StrapiMedia = {
   };
 };
 
-type HomepageData = { text: string };
-
 type MainPhotoRecord = { photo: StrapiMedia };
-
-/* ---------- HELPERS ---------- */
-
-const abs = (u = "") => {
-  const base =
-    process.env.NEXT_PUBLIC_STRAPI_URL ?? // ← головне — з env
-    `http://${process.env.NEXT_PUBLIC_HOST_IP ?? "localhost"}:1337`;
-  return u.startsWith("http") ? u : `${base}${u}`;
-};
 
 /* ---------- API CALLS ---------- */
 
 const getMainPhoto = async () => {
-  const res = await getStrapiEntries<MainPhotoRecord>("golovna-fotos", {
-    populate: "photo",
-    pagination: { page: 1, pageSize: 1 },
-    sort: "updatedAt:desc",
-    cache: "no-store",
-  });
-  return res[0] ?? null;
+  try {
+    const res = await getStrapiEntries<MainPhotoRecord>("golovna-fotos", {
+      populate: "photo",
+      pagination: { page: 1, pageSize: 1 },
+      sort: "updatedAt:desc",
+      cache: "no-store",
+    });
+    return res[0] ?? null;
+  } catch (e) {
+    console.error("Main photo fetch error:", e);
+    return null;
+  }
 };
 
 /* ---------- PAGE ---------- */
 
 export default async function HospitalLandingPage() {
-  const [photoRec] = await Promise.all([getMainPhoto()]);
+  // 👇 Виконуємо всі запити паралельно для швидкості
+  const [photoRec, page, photos, statsData] = await Promise.all([
+    getMainPhoto(),
+    fetchHomepage(),
+    getHospitalPhotos("hospital"),
+    fetchStatsData(), // <--- ТУТ ми тягнемо статистику на сервері
+  ]);
 
   /* ---------- HERO SOURCE & SIZE ---------- */
   const photo = photoRec?.photo;
-
-  // використовуємо «medium» (гарантовано є у Strapi) або оригінал
   const best = photo?.formats?.medium ?? photo;
 
   const heroSrc = best ? toAbs(best.url) : "/photo.png";
   const heroAlt = photo?.alternativeText ?? "Фото поліклініки";
   const heroW = best?.width ?? 600;
   const heroH = best?.height ?? 400;
-  const page = await fetchHomepage();
-  const photos: PhotoItem[] = await getHospitalPhotos("hospital");
+
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow">
@@ -148,8 +142,6 @@ export default async function HospitalLandingPage() {
           </div>
         </section>
 
-        {/* ---------- Далі контент без змін ---------- */}
-
         <section>
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mt-8 mb-6 text-center">
@@ -168,12 +160,13 @@ export default async function HospitalLandingPage() {
           </div>
         </section>
 
+        {/* 👇 Передаємо завантажені дані як initialData */}
         <section>
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mb-8 text-center">
               Статистика поліклініки на {new Date().getFullYear()} рік
             </h2>
-            <StatsSection />
+            <StatsSection initialData={statsData} />
           </div>
         </section>
 

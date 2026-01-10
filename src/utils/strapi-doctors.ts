@@ -156,3 +156,20 @@ export async function fetchDoctorsFilters(): Promise<{
     positions: Array.from(pos).sort(),
   };
 }
+
+export async function fetchStatsData() {
+  const res = await fetchFromStrapi<any>("stat"); // Запит без populate для швидкості
+  if (!res?.data) return null;
+
+  // Strapi v5 повертає дані або в attributes, або в корені
+  const data = res.data.attributes ?? res.data;
+  
+  return {
+    deps: data.deps || 0,
+    doctors: data.doctors || 0,
+    vtruchan: data.vtruchan || 0,
+    decl: data.decl || 0,
+    dosl: data.dosl || 0,
+    cons: data.cons || 0,
+  };
+}
