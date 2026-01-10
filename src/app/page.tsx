@@ -1,31 +1,23 @@
 import Image from "next/image";
 import PromoSlider from "@/components/FeatureSwiper";
 import StatsSection from "./components/StatsSection";
-import DoctorSwiper from "@/components/DoctorSwiper"; // Якщо використовується
 import ServiceCards from "@/components/ServiceCards";
 import LatestNews from "@/components/LatestNews";
-import { toAbs } from "@/utils/toAbs";
-import { getStrapiEntries } from "../utils/utils";
-import { fetchHomepage } from "@/utils/strapi-homepage";
+import { fetchHomepage, fetchHeroPhoto } from "@/utils/strapi-homepage"; // 👇 Імпортуємо нову функцію
 import NewsContent from "@/components/NewsContent";
-import { PhotoItem } from "./components/PhotoSlideshow.client"; // Прибрав PhotoSlideshowClient з імпорту, якщо не юзається прямо тут
 import { getHospitalPhotos } from "@/utils/getHospitalPhotos";
 import PhotoSlideshowCoverflow from "./components/PhotoSlideshowCoverflow.client";
 import MapsSection from "@/components/MapsSection";
 import type { Metadata } from "next";
-
-// 👇 Переконайся, що ця функція експортується з твого файлу utils
-// Якщо ти створив окремий файл strapi-stats.ts, зміни шлях на "@/utils/strapi-stats"
 import { fetchStatsData } from "@/utils/strapi-doctors";
 
 export const dynamic = "force-dynamic";
 
-/* ---------- TYPES ---------- */
+/* ---------- METADATA ---------- */
 export async function generateMetadata(): Promise<Metadata> {
-  const photoRec = await getMainPhoto();
-  const photo = photoRec?.photo;
-  const best = photo?.formats?.medium ?? photo;
-  const ogImage = (best?.url && toAbs(best.url)) || "/og/home.jpg";
+  // Використовуємо ту саму нову функцію для метаданих
+  const heroData = await fetchHeroPhoto();
+  const ogImage = heroData?.src || "/og/home.jpg"; // Фолбек на статику
 
   return {
     title: `КНП "Сімейна поліклініка" Чернігівської міської ради`,
@@ -35,8 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       url: "/",
       title: `КНП "Сімейна поліклініка" — офіційний сайт`,
-      description:
-        "Послуги, лікарі, графік прийому, новини та оголошення поліклініки Чернігова.",
+      description: "Послуги, лікарі, графік прийому, новини та оголошення.",
       images: [
         {
           url: ogImage,
@@ -48,66 +39,29 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       title: `КНП "Сімейна поліклініка" — офіційний сайт`,
-      description:
-        "Послуги, лікарі, графік прийому, новини та оголошення поліклініки Чернігова.",
+      description: "Послуги, лікарі, графік прийому, новини та оголошення.",
       images: [ogImage],
       card: "summary_large_image",
     },
   };
 }
 
-type StrapiMedia = {
-  id: number;
-  url: string;
-  alternativeText?: string;
-  width?: number;
-  height?: number;
-  formats?: {
-    large?: { url: string; width: number; height: number };
-    medium?: { url: string; width: number; height: number };
-    small?: { url: string; width: number; height: number };
-    thumbnail?: { url: string; width: number; height: number };
-  };
-};
-
-type MainPhotoRecord = { photo: StrapiMedia };
-
-/* ---------- API CALLS ---------- */
-
-const getMainPhoto = async () => {
-  try {
-    const res = await getStrapiEntries<MainPhotoRecord>("golovna-fotos", {
-      populate: "photo",
-      pagination: { page: 1, pageSize: 1 },
-      sort: "updatedAt:desc",
-      cache: "no-store",
-    });
-    return res[0] ?? null;
-  } catch (e) {
-    console.error("Main photo fetch error:", e);
-    return null;
-  }
-};
-
 /* ---------- PAGE ---------- */
 
 export default async function HospitalLandingPage() {
-  // 👇 Виконуємо всі запити паралельно для швидкості
-  const [photoRec, page, photos, statsData] = await Promise.all([
-    getMainPhoto(),
+  // 👇 Всі запити паралельно. Код чистий і зрозумілий.
+  const [heroPhoto, page, photos, statsData] = await Promise.all([
+    fetchHeroPhoto(),
     fetchHomepage(),
     getHospitalPhotos("hospital"),
-    fetchStatsData(), // <--- ТУТ ми тягнемо статистику на сервері
+    fetchStatsData(),
   ]);
 
-  /* ---------- HERO SOURCE & SIZE ---------- */
-  const photo = photoRec?.photo;
-  const best = photo?.formats?.medium ?? photo;
-
-  const heroSrc = best ? toAbs(best.url) : "/photo.png";
-  const heroAlt = photo?.alternativeText ?? "Фото поліклініки";
-  const heroW = best?.width ?? 600;
-  const heroH = best?.height ?? 400;
+  // Якщо фото не прийшло з API, беремо заглушку
+  const heroSrc = heroPhoto?.src || "/photo.png";
+  const heroAlt = heroPhoto?.alt || "Фото поліклініки";
+  const heroW = heroPhoto?.width || 800;
+  const heroH = heroPhoto?.height || 600;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -119,11 +73,11 @@ export default async function HospitalLandingPage() {
               <h1 className="text-4xl md:text-5xl font-bold leading-tight">
                 КНП "Сімейна поліклініка" <br /> Чернігівської міської ради
               </h1>
-              {page?.content.length ? (
+              {page?.content ? (
                 <NewsContent content={page.content} />
               ) : (
-                <p className="text-center text-gray-500">
-                  Контент ще не додано.
+                <p className="text-center md:text-left text-white/80">
+                  Ми піклуємося про ваше здоров'я.
                 </p>
               )}
             </div>
@@ -135,13 +89,14 @@ export default async function HospitalLandingPage() {
                 width={heroW}
                 height={heroH}
                 className="rounded-xl shadow-2xl object-cover"
-                unoptimized
-                priority
+                unoptimized // Для зовнішніх URL (Cloudflare/Strapi) це часто допомагає уникнути проблем NextImage Optimization
+                priority // Головне фото вантажимо першим
               />
             </div>
           </div>
         </section>
 
+        {/* ---------------- SLIDESHOW ---------------- */}
         <section>
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mt-8 mb-6 text-center">
@@ -151,6 +106,7 @@ export default async function HospitalLandingPage() {
           </div>
         </section>
 
+        {/* ---------------- SERVICES ---------------- */}
         <section>
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mb-8 text-center">
@@ -160,7 +116,7 @@ export default async function HospitalLandingPage() {
           </div>
         </section>
 
-        {/* 👇 Передаємо завантажені дані як initialData */}
+        {/* ---------------- STATS (Server Side Data) ---------------- */}
         <section>
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mb-8 text-center">
@@ -170,6 +126,7 @@ export default async function HospitalLandingPage() {
           </div>
         </section>
 
+        {/* ---------------- PROMO ---------------- */}
         <section className="py-16 bg-white">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mb-8 text-center">
@@ -179,9 +136,12 @@ export default async function HospitalLandingPage() {
           </div>
         </section>
 
+        {/* ---------------- NEWS ---------------- */}
         <section id="services" className="py-16 bg-white">
           <LatestNews />
         </section>
+
+        {/* ---------------- MAPS ---------------- */}
         <MapsSection />
       </main>
     </div>
