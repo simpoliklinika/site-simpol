@@ -1,24 +1,10 @@
-// src/app/components/StatsSection.tsx
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { fetchFromStrapi } from "@/utils/utils";
 
 interface StatItem {
   label: string;
   value: number;
-}
-
-// Відповідь Strapi для single-type "stat" (Strapi v5) повертає поля без вкладеного attributes
-interface StatData {
-  id: number;
-  deps: number; // Відділень
-  doctors: number; // Лікарів
-  vtruchan: number; // Хірургічних втручань
-  decl: number; // Декларацій
-  dosl: number; // Лабораторних досліджень
-  cons: number; // Консультацій
-  // інші метаполя можна ігнорувати
 }
 
 function useCountUp(target: number, duration = 2000, start = true) {
@@ -70,18 +56,33 @@ export default function StatsSection() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const strapiUrl =
-          "https://languages-politics-beliefs-serum.trycloudflare.com"; // ТИМЧАСОВО ВПИШИ ПРЯМО СЮДИ
-        const url = `${strapiUrl}/api/stat?populate=*`;
+        // Використовуємо URL з env або фолбек на твій тунель, якщо env не підтягнеться
+        const baseUrl =
+          process.env.NEXT_PUBLIC_STRAPI_URL ||
+          "https://languages-politics-beliefs-serum.trycloudflare.com";
 
-        console.log("🚀 Manual fetch start:", url);
+        // ВАЖЛИВО: Запит БЕЗ ?populate=* (це те, що ти перевірив і воно працює)
+        const url = `${baseUrl}/api/stat`;
 
-        const res = await fetch(url, { cache: "no-store" });
+        console.log("🚀 Fetching stats:", url);
+
+        const res = await fetch(url, {
+          cache: "no-store",
+          // Додаємо невеликий таймаут, щоб не вішати браузер, якщо мережа лагає
+          signal: AbortSignal.timeout(5000),
+        });
+
+        if (!res.ok) throw new Error(`Status: ${res.status}`);
+
         const json = await res.json();
+        console.log("✅ Stats data:", json);
 
-        console.log("✅ Manual fetch success:", json);
+        // Обробка твоєї структури JSON (v5 flat structure)
+        // Якщо дані прямо в data (як ти скинув): json.data.deps
+        // Якщо раптом Strapi поверне attributes: json.data.attributes.deps
+        const rawData = json?.data;
+        const data = rawData?.attributes || rawData;
 
-        const data = json?.data;
         if (!data) {
           setStats([]);
           return;
@@ -96,7 +97,7 @@ export default function StatsSection() {
           { label: "Консультацій", value: data.cons || 0 },
         ]);
       } catch (error) {
-        console.error("❌ Manual fetch error:", error);
+        console.error("❌ Stats fetch error:", error);
         setStats([]);
       }
     }
@@ -123,7 +124,8 @@ export default function StatsSection() {
       {stats === null ? (
         <p className="text-center">Завантаження статистики…</p>
       ) : stats.length === 0 ? (
-        <p className="text-center text-red-200">Не вдалося отримати дані.</p>
+        // Якщо помилка, показуємо порожній блок або нічого, щоб не лякати користувача червоним текстом
+        <div className="h-10"></div>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-y-8 gap-x-4">
