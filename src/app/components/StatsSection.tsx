@@ -56,34 +56,33 @@ export default function StatsSection() {
   useEffect(() => {
     async function loadStats() {
       try {
-        // Використовуємо URL з env або фолбек на твій тунель, якщо env не підтягнеться
+        // Беремо URL
         const baseUrl =
           process.env.NEXT_PUBLIC_STRAPI_URL ||
           "https://languages-politics-beliefs-serum.trycloudflare.com";
-
-        // ВАЖЛИВО: Запит БЕЗ ?populate=* (це те, що ти перевірив і воно працює)
-        const url = `${baseUrl}/api/stat`;
+        const url = `${baseUrl}/api/stat`; // Без populate=*, бо це вішає тунель
 
         console.log("🚀 Fetching stats:", url);
 
+        // Я прибрав signal (таймаут), тепер воно чекатиме скільки треба
         const res = await fetch(url, {
           cache: "no-store",
-          // Додаємо невеликий таймаут, щоб не вішати браузер, якщо мережа лагає
-          signal: AbortSignal.timeout(5000),
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
 
         if (!res.ok) throw new Error(`Status: ${res.status}`);
 
         const json = await res.json();
-        console.log("✅ Stats data:", json);
+        console.log("✅ Stats data received:", json);
 
-        // Обробка твоєї структури JSON (v5 flat structure)
-        // Якщо дані прямо в data (як ти скинув): json.data.deps
-        // Якщо раптом Strapi поверне attributes: json.data.attributes.deps
+        // Обробка даних (враховуємо і плоску структуру, і вкладену)
         const rawData = json?.data;
         const data = rawData?.attributes || rawData;
 
         if (!data) {
+          console.warn("No data found in response");
           setStats([]);
           return;
         }
@@ -124,7 +123,7 @@ export default function StatsSection() {
       {stats === null ? (
         <p className="text-center">Завантаження статистики…</p>
       ) : stats.length === 0 ? (
-        // Якщо помилка, показуємо порожній блок або нічого, щоб не лякати користувача червоним текстом
+        // Пустий блок замість помилки, щоб не псувати вигляд
         <div className="h-10"></div>
       ) : (
         <>
