@@ -3,7 +3,7 @@ import PromoSlider from "@/components/FeatureSwiper";
 import StatsSection from "./components/StatsSection";
 import ServiceCards from "@/components/ServiceCards";
 import LatestNews from "@/components/LatestNews";
-import { fetchHomepage, fetchHeroPhoto } from "@/utils/strapi-homepage"; // 👇 Імпортуємо нову функцію
+import { fetchHomepage } from "@/utils/strapi-homepage"; // Прибрав fetchHeroPhoto
 import NewsContent from "@/components/NewsContent";
 import { getHospitalPhotos } from "@/utils/getHospitalPhotos";
 import PhotoSlideshowCoverflow from "./components/PhotoSlideshowCoverflow.client";
@@ -13,12 +13,12 @@ import { fetchStatsData } from "@/utils/strapi-doctors";
 
 export const dynamic = "force-dynamic";
 
+/* ---------- STATIC CONFIG ---------- */
+// Жорстко задаємо шлях до фото в папці public
+const STATIC_HERO_IMAGE = "/main_photo.jpg";
+
 /* ---------- METADATA ---------- */
 export async function generateMetadata(): Promise<Metadata> {
-  // Використовуємо ту саму нову функцію для метаданих
-  const heroData = await fetchHeroPhoto();
-  const ogImage = heroData?.src || "/og/home.jpg"; // Фолбек на статику
-
   return {
     title: `КНП "Сімейна поліклініка" Чернігівської міської ради`,
     description:
@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: "Послуги, лікарі, графік прийому, новини та оголошення.",
       images: [
         {
-          url: ogImage,
+          url: STATIC_HERO_IMAGE,
           width: 1200,
           height: 630,
           alt: "Головне фото поліклініки",
@@ -40,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: {
       title: `КНП "Сімейна поліклініка" — офіційний сайт`,
       description: "Послуги, лікарі, графік прийому, новини та оголошення.",
-      images: [ogImage],
+      images: [STATIC_HERO_IMAGE],
       card: "summary_large_image",
     },
   };
@@ -49,23 +49,12 @@ export async function generateMetadata(): Promise<Metadata> {
 /* ---------- PAGE ---------- */
 
 export default async function HospitalLandingPage() {
-  // 👇 Всі запити паралельно. Код чистий і зрозумілий.
-  const [heroPhoto, page, photos, statsData] = await Promise.all([
-    fetchHeroPhoto(),
+  // Ми прибрали fetchHeroPhoto(), решта запитів (новини, лікарі) працюють як і раніше
+  const [page, photos, statsData] = await Promise.all([
     fetchHomepage(),
     getHospitalPhotos("hospital"),
     fetchStatsData(),
   ]);
-  console.log("------------------------------------------");
-  console.log("HERO PHOTO DATA:", heroPhoto);
-  console.log("HERO SRC:", heroPhoto?.src);
-  console.log("------------------------------------------");
-
-  // Якщо фото не прийшло з API, беремо заглушку
-  const heroSrc = heroPhoto?.src || "/photo.png";
-  const heroAlt = heroPhoto?.alt || "Фото поліклініки";
-  const heroW = heroPhoto?.width || 800;
-  const heroH = heroPhoto?.height || 600;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -88,13 +77,13 @@ export default async function HospitalLandingPage() {
 
             <div className="flex-1 flex justify-center">
               <Image
-                src={heroSrc}
-                alt={heroAlt}
-                width={heroW}
-                height={heroH}
+                src={STATIC_HERO_IMAGE}
+                alt="Фото поліклініки"
+                width={800}
+                height={600}
                 className="rounded-xl shadow-2xl object-cover"
-                unoptimized // Для зовнішніх URL (Cloudflare/Strapi) це часто допомагає уникнути проблем NextImage Optimization
-                priority // Головне фото вантажимо першим
+                priority
+                // unoptimized ми прибрали, бо для локальних файлів Next.js робить оптимізацію сам
               />
             </div>
           </div>
