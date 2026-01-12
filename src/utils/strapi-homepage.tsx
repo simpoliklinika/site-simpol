@@ -1,10 +1,10 @@
-//src/utils/strapi-homepage.tsx
-
 import { BlocksContent } from "@strapi/blocks-react-renderer";
 import { fetchFromStrapi } from "./utils";
 
-// --- Types ---
+// Використовуємо ту саму змінну оточення, що і в лікарях
+const BASE_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
+// --- Types ---
 export type HomepageFull = { content: BlocksContent };
 
 export interface HeroPhotoData {
@@ -14,70 +14,78 @@ export interface HeroPhotoData {
   height: number;
 }
 
-// --- Helpers ---
-
-const makeAbsoluteUrl = (url: string) => {
-  if (url.startsWith("http")) return url;
-  const base =
-    process.env.NEXT_PUBLIC_STRAPI_URL ||
-    "https://languages-politics-beliefs-serum.trycloudflare.com";
-  return `${base}${url}`;
+// --- Helper (як у doctors) ---
+const makeAbsoluteUrl = (u: string | undefined) => {
+  if (!u) return "";
+  if (u.startsWith("http")) return u;
+  return `${BASE_URL}${u}`;
 };
 
 // --- API Functions ---
 
-// 1. Отримання текстового контенту головної сторінки
 export async function fetchHomepage(): Promise<HomepageFull | null> {
-  // Використовуємо спільну утиліту замість ручного fetch
-  const res = await fetchFromStrapi<any>("homepage", {
-    cache: "no-store",
-  });
-
-  if (!res?.data) {
-    console.warn("Homepage data not found");
-    return null;
-  }
-
-  // Strapi v5: дані можуть бути одразу в data, або в attributes
+  const res = await fetchFromStrapi<any>("homepage", { cache: "no-store" });
+  if (!res?.data) return null;
   const data = res.data.attributes || res.data;
-
-  // Твоє поле називається 'text1', зберігаємо це
-  const blocks = data?.text1 as BlocksContent | undefined;
-
-  return { content: blocks ?? [] };
+  return { content: data?.text1 ?? [] };
 }
 
-// 2. Отримання головного фото (Hero Image)
+// 👇 ОНОВЛЕНА ТА ПОКРАЩЕНА ФУНКЦІЯ
 export async function fetchHeroPhoto(): Promise<HeroPhotoData | null> {
   try {
-    // Запит до колекції/типу фотографій
     const res = await fetchFromStrapi<any>("golovna-fotos", {
-      populate: "photo", // Важливо: тільки поле photo
-      sort: "updatedAt:desc", // Найсвіжіше
+      populate: "photo", // Важливо!
+      sort: "updatedAt:desc",
       pagination: { page: 1, pageSize: 1 },
       cache: "no-store",
     });
 
-    // Отримуємо перший елемент масиву (якщо це колекція) або об'єкт (якщо Single Type)
+    // 1. Отримуємо "сирий" об'єкт (враховуємо, чи це масив, чи об'єкт)
     const rawData = Array.isArray(res?.data) ? res.data[0] : res?.data;
-
     if (!rawData) return null;
 
-    // Strapi v5/v4 універсальний парсинг
-    const item = rawData.attributes || rawData;
-    const photoField = item.photo?.data?.attributes || item.photo; // Враховуємо і вкладеність, і плоску структуру
+    // 2. Нормалізуємо attributes (Strapi v4 vs v5)
+    const attrs = rawData.attributes || rawData;
 
-    if (!photoField) return null;
+    // 3. Логіка пошуку фото (ідентична до strapi-doctors.ts)
+    const nested = attrs.photo?.data?.attributes; // Глибока вкладеність
+    const flat = !nested && attrs.photo; // Плоска структура
 
-    // Вибираємо найкращий формат (medium або оригінал)
-    const formats = photoField.formats;
-    const bestFormat = formats?.medium || formats?.large || photoField;
+    // Якщо фото взагалі немає
+    if (!nested && !flat) return null;
+
+    // 4. Шукаємо найкращий URL (medium -> small -> original)
+    // Це вирішує проблему, коли "medium" не існує для маленьких картинок
+    let finalUrl = "";
+    let width = 800;
+    let height = 600;
+    let alt = "Фото поліклініки";
+
+    if (nested) {
+      // Пріоритет: Medium -> Original
+      const formats = nested.formats;
+      const bestFormat = formats?.medium || formats?.large || nested;
+
+      finalUrl = bestFormat.url;
+      width = bestFormat.width || 800;
+      height = bestFormat.height || 600;
+      alt = nested.alternativeText || alt;
+    } else if (flat) {
+      // Для спрощеної структури
+      const formats = flat.formats;
+      const bestFormat = formats?.medium || formats?.large || flat;
+
+      finalUrl = bestFormat.url;
+      width = bestFormat.width || 800;
+      height = bestFormat.height || 600;
+      alt = flat.alternativeText || alt;
+    }
 
     return {
-      src: makeAbsoluteUrl(bestFormat.url),
-      alt: photoField.alternativeText || "Головне фото поліклініки",
-      width: bestFormat.width || 800,
-      height: bestFormat.height || 600,
+      src: makeAbsoluteUrl(finalUrl),
+      alt: alt,
+      width: width,
+      height: height,
     };
   } catch (error) {
     console.error("❌ Hero photo fetch error:", error);

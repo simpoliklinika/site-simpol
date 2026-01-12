@@ -56,6 +56,10 @@ export default async function HospitalLandingPage() {
     getHospitalPhotos("hospital"),
     fetchStatsData(),
   ]);
+  console.log("------------------------------------------");
+  console.log("HERO PHOTO DATA:", heroPhoto);
+  console.log("HERO SRC:", heroPhoto?.src);
+  console.log("------------------------------------------");
 
   // Якщо фото не прийшло з API, беремо заглушку
   const heroSrc = heroPhoto?.src || "/photo.png";
