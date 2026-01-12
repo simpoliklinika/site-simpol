@@ -1,3 +1,5 @@
+//src/utils/strapi-homepage.tsx
+
 import { BlocksContent } from "@strapi/blocks-react-renderer";
 import { fetchFromStrapi } from "./utils";
 
