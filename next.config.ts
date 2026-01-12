@@ -4,37 +4,35 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['randomuser.me', 'localhost'],
+    // domains: ['randomuser.me', 'localhost'], // Це старий метод, краще використовувати remotePatterns знизу
     remotePatterns: [
-      // всі файли з Strapi за HTTP
+      // 👇👇👇 ОСЬ ЦЕ ТРЕБА БУЛО ДОДАТИ 👇👇👇
+      {
+        protocol: 'https',
+        hostname: 'adminsimpol.com.ua',
+        port: '',
+        pathname: '/**',
+      },
+      // 👆👆👆 КІНЕЦЬ ВАЖЛИВОГО БЛОКУ 👆👆👆
+
+      // Локальна розробка
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '1337',
-        pathname: '/**',      // <- дозволяємо всі шляхи, не тільки /uploads/**
-      },
-      {
-           protocol: 'https',
-            hostname: '178.128.199.216.sslip.io',
-           port: '',
-            pathname: '/**',
-           },
-      {
-        protocol: 'http',
-        hostname: '192.168.31.48',
-        port: '1337',
         pathname: '/**',
       },
-      // із randomuser залишаємо як було
+      // Random User
       {
         protocol: 'https',
         hostname: 'randomuser.me',
         port: '',              
         pathname: '/api/portraits/**',
       },
+      // Якщо ти ще використовуєш старі IP або тунелі, нехай будуть, але для продакшена вони не треба:
       {
         protocol: 'https',
-        hostname: '**.trycloudflare.com', // <--- ЦЕ ГОЛОВНЕ: Дозволяє будь-який тунель
+        hostname: '**.trycloudflare.com',
       },
     ],
   },
